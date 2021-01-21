@@ -34,9 +34,9 @@
 #include <assert.h>
 #else
 #ifndef NDEBUG
-#define assert(expr)  ((void)((expr) ? true : __debugbreak()))
+#define assert(expr) ((void)((expr) ? true : __debugbreak()))
 #else
-#define assert(expr)  ((void)0)
+#define assert(expr) ((void)0)
 #endif  // NDEBUG
 #endif  // WIN32
 #endif  // assert

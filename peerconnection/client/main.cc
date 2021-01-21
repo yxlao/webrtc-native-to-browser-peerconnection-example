@@ -32,48 +32,49 @@
 #include "webrtc/base/win32socketinit.h"
 #include "webrtc/base/win32socketserver.h"
 
+int PASCAL wWinMain(HINSTANCE instance,
+                    HINSTANCE prev_instance,
+                    wchar_t* cmd_line,
+                    int cmd_show) {
+    rtc::EnsureWinsockInit();
+    rtc::Win32Thread w32_thread;
+    rtc::ThreadManager::Instance()->SetCurrentThread(&w32_thread);
 
-int PASCAL wWinMain(HINSTANCE instance, HINSTANCE prev_instance,
-                    wchar_t* cmd_line, int cmd_show) {
-  rtc::EnsureWinsockInit();
-  rtc::Win32Thread w32_thread;
-  rtc::ThreadManager::Instance()->SetCurrentThread(&w32_thread);
-
-	if (!rtc::InitializeSSL(NULL) || !rtc::InitializeSSLThread()) { 
-	   LOG(LS_ERROR) << "Failed to initialize SSL"; 
-	   ASSERT(0);
-	} 
-
-  MainWnd wnd;
-  if (!wnd.Create()) {
-    ASSERT(false);
-    return -1;
-  }
-
-  PeerConnectionClient client;
-  rtc::scoped_refptr<Conductor> conductor(
-        new rtc::RefCountedObject<Conductor>(&client, &wnd));
-
-  // Main loop.
-  MSG msg;
-  BOOL gm;
-  while ((gm = ::GetMessage(&msg, NULL, 0, 0)) != 0 && gm != -1) {
-    if (!wnd.PreTranslateMessage(&msg)) {
-      ::TranslateMessage(&msg);
-      ::DispatchMessage(&msg);
+    if (!rtc::InitializeSSL(NULL) || !rtc::InitializeSSLThread()) {
+        LOG(LS_ERROR) << "Failed to initialize SSL";
+        ASSERT(0);
     }
-  }
 
-  if (conductor->connection_active() || client.is_connected()) {
-    while ((conductor->connection_active() || client.is_connected()) &&
-           (gm = ::GetMessage(&msg, NULL, 0, 0)) != 0 && gm != -1) {
-      if (!wnd.PreTranslateMessage(&msg)) {
-        ::TranslateMessage(&msg);
-        ::DispatchMessage(&msg);
-      }
+    MainWnd wnd;
+    if (!wnd.Create()) {
+        ASSERT(false);
+        return -1;
     }
-  }
 
-  rtc::CleanupSSL();
-  return 0;
+    PeerConnectionClient client;
+    rtc::scoped_refptr<Conductor> conductor(
+            new rtc::RefCountedObject<Conductor>(&client, &wnd));
+
+    // Main loop.
+    MSG msg;
+    BOOL gm;
+    while ((gm = ::GetMessage(&msg, NULL, 0, 0)) != 0 && gm != -1) {
+        if (!wnd.PreTranslateMessage(&msg)) {
+            ::TranslateMessage(&msg);
+            ::DispatchMessage(&msg);
+        }
+    }
+
+    if (conductor->connection_active() || client.is_connected()) {
+        while ((conductor->connection_active() || client.is_connected()) &&
+               (gm = ::GetMessage(&msg, NULL, 0, 0)) != 0 && gm != -1) {
+            if (!wnd.PreTranslateMessage(&msg)) {
+                ::TranslateMessage(&msg);
+                ::DispatchMessage(&msg);
+            }
+        }
+    }
+
+    rtc::CleanupSSL();
+    return 0;
 }
